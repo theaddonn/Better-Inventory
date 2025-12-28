@@ -1,0 +1,29 @@
+{
+    "format_version": 2,
+    "header": {
+        "name": "Better-Inventory RP",
+        "description": "By FrederoxDev",
+        "uuid": "88e875c6-1d8d-4c12-a815-b1081a6ffadc",
+        "version": [
+            1,
+            0,
+            0
+        ],
+        "min_engine_version": [
+            1,
+            21,
+            0
+        ]
+    },
+    "modules": [
+        {
+            "type": "resources",
+            "uuid": "8152d87d-969e-4091-bdd7-eea3bd85fd62",
+            "version": [
+                1,
+                0,
+                0
+            ]
+        }
+    ]
+}
