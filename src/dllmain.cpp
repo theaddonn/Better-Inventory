@@ -81,21 +81,50 @@ static void ShulkerBoxBlockItem_appendFormattedHovertext(ShulkerBoxBlockItem* se
 }
 
 static void HoverRenderer__renderHoverBox(HoverRenderer* self, MinecraftUIRenderContext* ctx, IClientInstance* client, RectangleArea* aabb, float someFloat) {
+	// Freddie:
 	// This is really bad code, it is relying on the fact that I have also hooked appendFormattedHovertext for items to append the item identifier
 	// I have no idea where the currently hovered item is stored in the game! I can't find any references to it, so it might be set in some weird place?
+	// 
+	// Lucy:
+	// No clue either but this should be more solid
 
 	if (self->mFilteredContent.find("shulker_box") != std::string::npos) {
-		std::string cachedIndex = self->mFilteredContent.substr(self->mFilteredContent.size() - 7, 1);
+		// Find the position right after "shulker_box§r"
+		size_t shulkerPos = self->mFilteredContent.find("shulker_box");
+		if (shulkerPos != std::string::npos) {
+			// Look for the hex index after "shulker_box§r"
+			// The pattern is: "shulker_box§r§X" where X is our hex digit
+			size_t searchStart = shulkerPos + 11; // length of "shulker_box"
 
-		try {
-			int index = std::stoi(cachedIndex, nullptr, 16);
-			shulkerRenderer.Render(ctx, self, index);
-		}
-		catch (...) {
-			return;
-		}
+			// Skip the "§r" that follows
+			if (searchStart + 2 < self->mFilteredContent.size() &&
+				self->mFilteredContent[searchStart] == '\xc2' &&
+				self->mFilteredContent[searchStart + 1] == '\xa7' &&
+				self->mFilteredContent[searchStart + 2] == 'r') {
+				searchStart += 3;
+			}
 
-		return;
+			// Now look for our index marker "§X" where X is the hex digit
+			if (searchStart + 2 < self->mFilteredContent.size() &&
+				self->mFilteredContent[searchStart] == '\xc2' &&
+				self->mFilteredContent[searchStart + 1] == '\xa7') {
+
+				char hexChar = self->mFilteredContent[searchStart + 2];
+
+				try {
+					std::string hexStr(1, hexChar);
+					int index = std::stoi(hexStr, nullptr, 16);
+
+					if (index >= 0 && index < SHULKER_CACHE_SIZE) {
+						shulkerRenderer.Render(ctx, self, index);
+						return;
+					}
+				}
+				catch (...) {
+					// Fall through to default rendering
+				}
+			}
+		}
 	}
 
 	_HoverRenderer__renderHoverBox(self, ctx, client, aabb, someFloat);
